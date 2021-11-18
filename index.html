@@ -3,67 +3,79 @@
   <script src="https://js.stripe.com/v3/"></script>
   <script>
     window.addEventListener("DOMContentLoaded", (event) => {
-      console.log("DOM fully loaded and parsed");
-      const stripe = Stripe("pk_test_czIHWrjBQhT0NDuu1FysellM00TKL0fQKa");
-      const elements = stripe.elements();
+      const loadFormButton = document.getElementById("load-form-button");
+      loadFormButton.addEventListener("click", () => {
+        const stripePublicKey = document.getElementById("stripe-public-key");
 
-      const options = {
-        style: {
-          base: {
-            padding: "10px 12px",
-            color: "#32325d",
-            fontSize: "16px",
-            "::placeholder": {
-              color: "#aab7c4",
+        const stripe = Stripe(stripePublicKey.value);
+        const elements = stripe.elements();
+
+        const options = {
+          style: {
+            base: {
+              padding: "10px 12px",
+              color: "#32325d",
+              fontSize: "16px",
+              "::placeholder": {
+                color: "#aab7c4",
+              },
             },
           },
-        },
-      };
+        };
 
-      // Create an instance of the p24Bank Element
-      const p24Bank = elements.create("p24Bank", options);
+        // Create an instance of the p24Bank Element
+        const p24Bank = elements.create("p24Bank", options);
 
-      p24Bank.mount("#p24-bank-element");
+        p24Bank.mount("#p24-bank-element");
 
-      const form = document.getElementById("payment-form");
-      const accountholderClientSecret = document.getElementById(
-        "accountholder-clientsecret"
-      );
-      const accountholderName = document.getElementById("accountholder-name");
-      const accountholderEmail = document.getElementById("accountholder-email");
+        const form = document.getElementById("payment-form");
+        const accountholderClientSecret = document.getElementById(
+          "accountholder-clientsecret"
+        );
+        const accountholderName = document.getElementById("accountholder-name");
+        const accountholderEmail = document.getElementById(
+          "accountholder-email"
+        );
 
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
 
-        // Redirects away from the client
-        stripe
-          .confirmP24Payment(accountholderClientSecret.value, {
-            payment_method: {
-              p24: p24Bank,
-              billing_details: {
-                name: accountholderName.value,
-                email: accountholderEmail.value,
+          // Redirects away from the client
+          stripe
+            .confirmP24Payment(accountholderClientSecret.value, {
+              payment_method: {
+                p24: p24Bank,
+                billing_details: {
+                  name: accountholderName.value,
+                  email: accountholderEmail.value,
+                },
               },
-            },
-            payment_method_options: {
-              p24: {
-                // In order to be able to pass the `tos_shown_and_accepted` parameter, you must
-                // ensure that the P24 regulations and information obligation consent
-                // text is clearly visible to the customer. See
-                // stripe.com/docs/payments/p24/accept-a-payment#requirements
-                // for directions.
-                tos_shown_and_accepted: true,
+              payment_method_options: {
+                p24: {
+                  // In order to be able to pass the `tos_shown_and_accepted` parameter, you must
+                  // ensure that the P24 regulations and information obligation consent
+                  // text is clearly visible to the customer. See
+                  // stripe.com/docs/payments/p24/accept-a-payment#requirements
+                  // for directions.
+                  tos_shown_and_accepted: true,
+                },
               },
-            },
-            return_url: "https://example.com/checkout/complete",
-          })
-          .then((result) => {
-            console.log(result);
-          });
+              return_url: "https://maksimzinovik.github.io/p24",
+            })
+            .then((result) => {
+              console.log(result);
+            });
+        });
       });
     });
   </script>
 </head>
+
+<div class="form-row">
+  <label for="stripe-public-key"> Stripe Public Key </label>
+  <input id="stripe-public-key" name="stripe-public-key" />
+</div>
+<button id="load-form-button">Load form</button>
 
 <form id="payment-form">
   <div class="form-row">
