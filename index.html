@@ -1,0 +1,100 @@
+<head>
+  <title>P24 Checkout</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", (event) => {
+      console.log("DOM fully loaded and parsed");
+      const stripe = Stripe("pk_test_czIHWrjBQhT0NDuu1FysellM00TKL0fQKa");
+      const elements = stripe.elements();
+
+      const options = {
+        style: {
+          base: {
+            padding: "10px 12px",
+            color: "#32325d",
+            fontSize: "16px",
+            "::placeholder": {
+              color: "#aab7c4",
+            },
+          },
+        },
+      };
+
+      // Create an instance of the p24Bank Element
+      const p24Bank = elements.create("p24Bank", options);
+
+      p24Bank.mount("#p24-bank-element");
+
+      const form = document.getElementById("payment-form");
+      const accountholderClientSecret = document.getElementById(
+        "accountholder-clientsecret"
+      );
+      const accountholderName = document.getElementById("accountholder-name");
+      const accountholderEmail = document.getElementById("accountholder-email");
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        // Redirects away from the client
+        stripe
+          .confirmP24Payment(accountholderClientSecret.value, {
+            payment_method: {
+              p24: p24Bank,
+              billing_details: {
+                name: accountholderName.value,
+                email: accountholderEmail.value,
+              },
+            },
+            payment_method_options: {
+              p24: {
+                // In order to be able to pass the `tos_shown_and_accepted` parameter, you must
+                // ensure that the P24 regulations and information obligation consent
+                // text is clearly visible to the customer. See
+                // stripe.com/docs/payments/p24/accept-a-payment#requirements
+                // for directions.
+                tos_shown_and_accepted: true,
+              },
+            },
+            return_url: "https://example.com/checkout/complete",
+          })
+          .then((result) => {
+            console.log(result);
+          });
+      });
+    });
+  </script>
+</head>
+
+<form id="payment-form">
+  <div class="form-row">
+    <label for="accountholder-clientsecret"> Client Secret </label>
+    <input id="accountholder-clientsecret" name="accountholder-clientsecret" />
+  </div>
+  <div class="form-row">
+    <label for="accountholder-name"> Name </label>
+    <input
+      id="accountholder-name"
+      name="accountholder-name"
+      value="Test P24 Name"
+    />
+  </div>
+  <div class="form-row">
+    <label for="accountholder-email"> Email </label>
+    <input
+      id="accountholder-email"
+      name="accountholder-email"
+      value="testp24@email.com"
+    />
+  </div>
+
+  <div class="form-row">
+    <label for="p24-bank-element"> P24 Bank </label>
+    <div id="p24-bank-element">
+      <!-- A Stripe Element will be inserted here. -->
+    </div>
+  </div>
+
+  <button>Submit Payment</button>
+
+  <div id="error-message" role="alert"></div>
+</form>
